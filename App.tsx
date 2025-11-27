@@ -27,6 +27,9 @@ export default function App() {
   // We track how many times we've printed for the current input to cycle through categories
   const [generationCount, setGenerationCount] = useState(0);
   
+  // History State: Tracks concepts generated for the current city to avoid repetition
+  const [conceptHistory, setConceptHistory] = useState<string[]>([]);
+  
   // Sticker State
   // Changed from just string URL to object to track city name for downloads
   const [freshSticker, setFreshSticker] = useState<{url: string, city: string} | null>(null);
@@ -46,15 +49,20 @@ export default function App() {
     setFreshSticker(null);
 
     try {
-      // Pass the generation count to cycle through categories
-      const url = await generateCitySticker(city, generationCount);
+      // Step 1 & 2: Call service with history
+      const { imageUrl, concept } = await generateCitySticker(city, generationCount, conceptHistory);
       
       // Store city alongside url for filename generation
-      setFreshSticker({ url, city });
+      setFreshSticker({ url: imageUrl, city });
       
-      // Increment count so the next click gets the next category
+      // Increment count so the next click gets the next aspect category
       setGenerationCount(prev => prev + 1);
+      
+      // Add the new concept to history so we don't generate it again
+      setConceptHistory(prev => [...prev, concept]);
+      
     } catch (err) {
+      console.error(err);
       setError("Printer jammed! Try again.");
     } finally {
       setLoading(false);
@@ -64,8 +72,9 @@ export default function App() {
   // Input Change Handler
   const handleCityChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       setCity(e.target.value);
-      // Reset the cycle when the user changes the city name
+      // Reset the cycle and history when the user changes the city name
       setGenerationCount(0);
+      setConceptHistory([]);
   };
 
   // Download Handler (Single)
