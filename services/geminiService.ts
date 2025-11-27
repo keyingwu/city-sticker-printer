@@ -2,52 +2,41 @@ import { GoogleGenAI } from "@google/genai";
 
 const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
-// Aspect-Based Generation Model
-// Instead of hardcoded categories (Food, Building), we use semantic dimensions 
-// that allow the AI to discover what makes a city unique.
+// Tourist-Oriented Aspect Model (v3)
+// All aspects are things a VISITOR would notice, buy, or experience.
+// Each one should still generate ONE clear subject for the sticker.
+
 const CITY_ASPECTS = [
   {
-    dimension: "iconic-object",
-    instruction: "the single most iconic physical object, landmark, or structure that defines this city"
+    dimension: "postcard-landmark",
+    instruction:
+      "pick ONE random postcard-famous landmark or view in this city, shown as ONE simplified element (for example just the tower, gate, bridge, dome, main square statue). If the city is not globally famous, imagine a typical town-square landmark or historic building that would appear on a postcard for this region."
   },
   {
-    dimension: "cultural-symbol",
-    instruction: "a cultural practice, tradition, or stereotype that locals would immediately recognize"
+    dimension: "must-try-food-or-drink",
+    instruction:
+      "pick ONE iconic local food or drink in this city, shown as a single serving (plate, cone, cup, glass) with no table, no restaurant interior, no second dish. If you are unsure, choose a typical food or drink from the country or region that visitors would likely try first."
   },
   {
-    dimension: "sensory-experience",
-    instruction: "something you taste, smell, hear, or feel that's unique to this city's street life"
+    dimension: "souvenir-object",
+    instruction:
+      "pick ONE physical souvenir object that tourists might buy here (for example fridge magnet, keychain, snow globe, tote bag, mug, hat). Show just this object by itself. The visual motif on it should reference the city (like a tiny sketch of the landmark), but do NOT include any text or city name."
   },
   {
-    dimension: "movement",
-    instruction: "how people or things move through this city (transportation, rhythm, flow)"
+    dimension: "street-signature",
+    instruction:
+      "pick ONE small street-level detail that tourists notice and photograph in this city, Show only this object, with no surrounding buildings or crowd."
   },
-  {
-    dimension: "living-thing",
-    instruction: "a creature, plant, or living entity closely associated with this city"
-  },
-  {
-    dimension: "human-character",
-    instruction: "a stereotype or archetype of a person you'd encounter in this city"
-  },
-  {
-    dimension: "street-level-detail",
-    instruction: "a small, overlooked object or detail that exists at eye-level on the streets"
-  },
-  {
-    dimension: "nocturnal",
-    instruction: "something that defines this city at night or after dark"
-  }
 ];
 
-const STYLES = [
+
+const STYLES = [ 
   "classic bold vector sticker", 
-  "satirical caricature illustration",
-  "funny cartoon style", 
-  "bold line art with flat colors",
-  "retro souvenir decal style"
+"satirical caricature illustration", 
+"funny cartoon style", 
+"bold line art with flat colors", 
+"retro souvenir decal style" 
 ];
-
 /**
  * Removes the black background from the generated image using a flood-fill algorithm.
  * This creates a true "die-cut" sticker with a white border.
@@ -112,6 +101,7 @@ const processImageWithTransparency = (imageSrc: string): Promise<string> => {
 export const generateCitySticker = async (city: string, attemptIndex: number = 0): Promise<string> => {
   try {
     const model = 'gemini-2.5-flash-image';
+    // const model = 'gemini-3-pro-image-preview';
     
     // Select Aspect based on rotation index
     const aspect = CITY_ASPECTS[attemptIndex % CITY_ASPECTS.length];
@@ -131,11 +121,11 @@ export const generateCitySticker = async (city: string, attemptIndex: number = 0
       CRITICAL RULES:
       - Choose THE most stereotypical, immediately recognizable example from ${city} for this aspect.
       - Do NOT be generic. "Tokyo ramen" is generic. "Ichiran ramen booth with the bamboo curtain" is specific.
-      - Do NOT mix aspects. If asked for movement, don't draw food.
+      - SINGLE ITEM, don't make it too crowded
       
       HUMOR & STYLE:
-      - Make it slightly absurd, tired, chaotic, or overly enthusiastic.
-      - Use a ${randomStyle}.
+      - Humor comes from exaggeration, contrast, or small relatable tourist problems.
+      - ${randomStyle}
       
       DIE-CUT LAYOUT (CRITICAL):
       1. THICK WHITE OUTLINE around the entire subject
@@ -143,8 +133,10 @@ export const generateCitySticker = async (city: string, attemptIndex: number = 0
       3. High contrast, no shadows on background
       4. Center the subject
       
-      Random Seed: ${seed}
+      Seed: ${seed}
     `;
+
+
 
     const response = await ai.models.generateContent({
       model: model,

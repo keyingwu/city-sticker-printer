@@ -44,7 +44,7 @@ export default function App() {
     setFreshSticker(null);
 
     try {
-      // Pass the generation count to cycle through categories (Landmark -> Food -> Transport -> Animal)
+      // Pass the generation count to cycle through categories
       const url = await generateCitySticker(city, generationCount);
       
       // Store city alongside url for filename generation
@@ -63,7 +63,6 @@ export default function App() {
   const handleCityChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       setCity(e.target.value);
       // Reset the cycle when the user changes the city name
-      // This ensures "New York" starts with the most iconic Landmark, not a random rat.
       setGenerationCount(0);
   };
 
@@ -77,6 +76,11 @@ export default function App() {
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
+  };
+
+  // Delete Handler
+  const deleteSticker = (id: string) => {
+      setPlacedStickers(prev => prev.filter(sticker => sticker.id !== id));
   };
 
   // Drag Handlers
@@ -133,11 +137,11 @@ export default function App() {
       const { x: clientX, y: clientY } = getClientCoords(e);
 
       // Calculate precise start position relative to canvas
-      // The sticker is w-48 (192px) and centered.
-      const stickerWidth = 192;
+      // Updated for smaller 256px sticker
+      const stickerWidth = 256;
       const printerX = (rect.width / 2) - (stickerWidth / 2);
-      // Visually align with where the printer head ends (~170px from top)
-      const printerY = 170; 
+      // Adjusted printerY for the compact printer head (approx 220px down)
+      const printerY = 220; 
 
       const newId = Date.now().toString();
       const newSticker: PlacedSticker = {
@@ -190,8 +194,8 @@ export default function App() {
                     transform: `rotate(${sticker.rotation}deg) scale(${sticker.scale})`,
                     zIndex: dragItem?.id === sticker.id ? 100 : 10, 
                     touchAction: 'none',
-                    width: '192px', // w-48
-                    height: '192px'
+                    width: '256px', // w-64 (256px)
+                    height: '256px'
                 }}
                 onMouseDown={(e) => handleMouseDown(e, 'placed', sticker.id)}
                 onTouchStart={(e) => handleMouseDown(e, 'placed', sticker.id)}
@@ -202,14 +206,30 @@ export default function App() {
                     className="w-full h-full object-contain pointer-events-none select-none transition-transform active:scale-105"
                     style={{ 
                         // Drop shadow creates the "thick paper" illusion for the die-cut sticker
-                        filter: 'drop-shadow(2px 4px 3px rgba(0,0,0,0.2))'
+                        filter: 'drop-shadow(2px 4px 5px rgba(0,0,0,0.25))'
                     }}
                     draggable={false} 
                  />
                  
-                 {/* Download Button (Visible on Hover) */}
+                 {/* Delete Button (Visible on Hover - Top Left) */}
                  <button 
-                    className="absolute -top-2 -right-2 bg-white text-slate-600 p-2 rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-all duration-200 hover:bg-blue-50 hover:text-blue-600 hover:scale-110 z-20"
+                    className="absolute -top-3 -left-3 bg-white text-slate-400 p-2 rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-all duration-200 hover:bg-red-50 hover:text-red-600 hover:scale-110 z-20"
+                    title="Delete Sticker"
+                    onMouseDown={(e) => e.stopPropagation()}
+                    onTouchStart={(e) => e.stopPropagation()}
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        deleteSticker(sticker.id);
+                    }}
+                 >
+                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-5 h-5">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                     </svg>
+                 </button>
+
+                 {/* Download Button (Visible on Hover - Top Right) */}
+                 <button 
+                    className="absolute -top-3 -right-3 bg-white text-slate-600 p-2 rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-all duration-200 hover:bg-blue-50 hover:text-blue-600 hover:scale-110 z-20"
                     title="Download Sticker"
                     onMouseDown={(e) => e.stopPropagation()}
                     onTouchStart={(e) => e.stopPropagation()}
@@ -218,7 +238,7 @@ export default function App() {
                         downloadSticker(sticker.url, sticker.city);
                     }}
                  >
-                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-4 h-4">
+                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-5 h-5">
                         <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M12 9v6m0 0 3-3m-3 3-3-3" />
                      </svg>
                  </button>
@@ -227,45 +247,48 @@ export default function App() {
 
           {/* Instructions (if empty) */}
           {placedStickers.length === 0 && !freshSticker && !loading && (
-              <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-20">
-                  <h2 className="text-4xl font-black text-slate-400 -rotate-6 tracking-widest">YOUR DESK IS EMPTY</h2>
+              <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-20 mt-64">
+                  <h2 className="text-5xl font-black text-slate-400 -rotate-6 tracking-widest text-center">
+                    YOUR DESK<br/>IS EMPTY
+                  </h2>
               </div>
           )}
       </div>
 
       {/* Printer Station (Fixed UI Layer) */}
       <div className="absolute top-0 left-0 right-0 pointer-events-none flex justify-center z-50 pt-4">
-        <div className="pointer-events-auto">
+        <div className="pointer-events-auto w-full px-4">
             <Printer 
                 loading={loading} 
                 freshSticker={freshSticker}
                 onStartDragFresh={startDragFresh}
                 onDownloadFresh={() => freshSticker && downloadSticker(freshSticker.url, freshSticker.city)}
             >
-                <form onSubmit={handleGenerate} className="flex gap-2">
+                <form onSubmit={handleGenerate} className="flex gap-3">
                     <input
                         type="text"
                         value={city}
                         onChange={handleCityChange}
-                        placeholder="Type a city name..."
-                        className="flex-grow bg-white px-3 py-2 rounded text-sm font-bold border border-slate-300 focus:ring-2 focus:ring-indigo-500 outline-none uppercase tracking-wide"
+                        placeholder="TYPE CITY..."
+                        className="flex-grow bg-white px-5 py-3 rounded-lg text-xl font-bold border-2 border-slate-300 focus:ring-4 focus:ring-indigo-500/30 focus:border-indigo-500 outline-none uppercase tracking-wide placeholder-slate-300 text-slate-700"
                         disabled={loading}
+                        autoFocus
                     />
                     <button
                         type="submit"
                         disabled={loading || !city}
-                        className={`px-4 py-2 rounded text-white font-bold text-xs uppercase tracking-wider transition-all ${loading ? 'bg-slate-400' : 'bg-indigo-600 hover:bg-indigo-500 shadow-lg'}`}
+                        className={`px-6 py-3 rounded-lg text-white font-black text-lg uppercase tracking-widest transition-all transform active:scale-95 ${loading ? 'bg-slate-400 shadow-none cursor-not-allowed' : 'bg-indigo-600 hover:bg-indigo-500 shadow-xl hover:shadow-2xl hover:-translate-y-1'}`}
                     >
                         {loading ? '...' : 'PRINT'}
                     </button>
                 </form>
-                {error && <div className="text-[10px] text-red-500 mt-1 font-bold text-center">{error}</div>}
+                {error && <div className="text-xs text-red-500 mt-2 font-bold text-center tracking-wide">{error}</div>}
             </Printer>
         </div>
       </div>
       
       {/* Footer/Credits */}
-      <div className="absolute bottom-4 left-4 text-[10px] text-slate-400 font-mono pointer-events-none">
+      <div className="absolute bottom-4 left-4 text-xs text-slate-400 font-mono pointer-events-none opacity-60">
         POWERED BY GEMINI • DRAG TO ARRANGE • HOVER TO DOWNLOAD
       </div>
 

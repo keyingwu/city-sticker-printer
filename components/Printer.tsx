@@ -10,34 +10,34 @@ interface PrinterProps {
 
 export const Printer: React.FC<PrinterProps> = ({ loading, children, freshSticker, onStartDragFresh, onDownloadFresh }) => {
   return (
-    <div className="relative w-full max-w-md mx-auto z-50 select-none">
+    <div className="relative w-full max-w-lg mx-auto z-50 select-none">
       
       {/* Printer Top Body (The "Head") - High Z-index to cover the paper origin */}
-      <div className="relative z-20 bg-slate-800 rounded-t-3xl shadow-2xl border-b-8 border-slate-900 overflow-hidden">
+      <div className="relative z-20 bg-slate-800 rounded-t-[2rem] shadow-2xl border-b-[10px] border-slate-900 overflow-hidden">
         {/* Status Light & Branding */}
-        <div className="h-16 flex items-center justify-between px-6 bg-slate-800">
+        <div className="h-20 flex items-center justify-between px-6 bg-slate-800">
            <div className="flex items-center gap-3">
-             <div className={`w-4 h-4 rounded-full shadow-inner ${loading ? 'bg-amber-400 animate-pulse' : 'bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.5)]'}`}></div>
+             <div className={`w-5 h-5 rounded-full shadow-inner ${loading ? 'bg-amber-400 animate-pulse' : 'bg-emerald-500 shadow-[0_0_15px_rgba(16,185,129,0.6)]'}`}></div>
              <span className="text-xs font-mono text-slate-400 tracking-widest font-bold">
                {loading ? 'PRINTING...' : 'READY'}
              </span>
            </div>
-           <div className="text-slate-600 font-black italic opacity-30 text-xl">STICKER-MATIC</div>
+           <div className="text-slate-600 font-black italic opacity-30 text-2xl tracking-tighter">STICKER-MATIC</div>
         </div>
 
         {/* Input Area (The "Screen" of the printer) */}
-        <div className="bg-slate-100 p-4 border-y border-slate-300 shadow-inner">
+        <div className="bg-slate-100 p-6 border-y border-slate-300 shadow-inner">
             {children}
         </div>
 
         {/* The Extrusion Slot */}
-        <div className="h-4 bg-slate-900 relative">
-           <div className="absolute bottom-0 left-4 right-4 h-2 bg-black rounded-full opacity-50"></div>
+        <div className="h-6 bg-slate-900 relative">
+           <div className="absolute bottom-0 left-6 right-6 h-3 bg-black rounded-full opacity-50"></div>
         </div>
       </div>
 
       {/* The Hanging Area - Lower Z-index so it comes "out" from behind/under the top body */}
-      <div className="relative z-10 flex justify-center -mt-2 perspective-1000">
+      <div className="relative z-10 flex justify-center -mt-3 perspective-1000">
         
         {freshSticker && (
              <div 
@@ -52,7 +52,7 @@ export const Printer: React.FC<PrinterProps> = ({ loading, children, freshSticke
                 <img 
                     src={freshSticker.url} 
                     alt="Fresh Sticker" 
-                    className="w-48 h-48 object-contain pointer-events-none select-none" 
+                    className="w-64 h-64 object-contain pointer-events-none select-none" 
                     style={{ 
                         // Drop-shadow makes white border visible
                         filter: 'drop-shadow(0 4px 6px rgba(0,0,0,0.2))' 
@@ -68,7 +68,7 @@ export const Printer: React.FC<PrinterProps> = ({ loading, children, freshSticke
 
                 {/* Quick Download Button for fresh sticker */}
                 <button 
-                    className="absolute top-4 right-4 w-8 h-8 bg-white/90 hover:bg-blue-50 text-slate-600 rounded-full shadow-md flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+                    className="absolute top-4 right-4 w-10 h-10 bg-white/90 hover:bg-blue-50 text-slate-600 rounded-full shadow-lg flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200"
                     title="Download Now"
                     onMouseDown={(e) => e.stopPropagation()}
                     onTouchStart={(e) => e.stopPropagation()}
@@ -77,7 +77,7 @@ export const Printer: React.FC<PrinterProps> = ({ loading, children, freshSticke
                         onDownloadFresh();
                     }}
                  >
-                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-4 h-4">
+                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-5 h-5">
                         <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M12 9v6m0 0 3-3m-3 3-3-3" />
                      </svg>
                  </button>
