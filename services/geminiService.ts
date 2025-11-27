@@ -123,7 +123,7 @@ const generateConcept = async (city: string, aspect: typeof CITY_ASPECTS[0], his
         Role: Creative Director for a funny sticker app.
         Task: Brainstorm ONE specific visual subject for a sticker.
         
-        City: ${city}
+        Subject: ${city}
         
         AVOID these concepts (already generated):
         ${history.map(h => `- ${h}`).join('\n')}
