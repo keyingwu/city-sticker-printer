@@ -124,8 +124,6 @@ const generateConcept = async (city: string, aspect: typeof CITY_ASPECTS[0], his
         Task: Brainstorm ONE specific visual subject for a sticker.
         
         City: ${city}
-        Category: ${aspect.dimension}
-        Category Instruction: ${aspect.instruction}
         
         AVOID these concepts (already generated):
         ${history.map(h => `- ${h}`).join('\n')}
