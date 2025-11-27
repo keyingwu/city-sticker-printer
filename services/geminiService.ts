@@ -18,11 +18,6 @@ const CITY_ASPECTS = [
       "pick ONE iconic local food or drink in this city, shown as a single serving (plate, cone, cup, glass) with no table, no restaurant interior, no second dish. If you are unsure, choose a typical food or drink from the country or region that visitors would likely try first."
   },
   {
-    dimension: "souvenir-object",
-    instruction:
-      "pick ONE physical souvenir object that tourists might buy here (for example fridge magnet, keychain, snow globe, tote bag, mug, hat). Show just this object by itself. The visual motif on it should reference the city (like a tiny sketch of the landmark), but do NOT include any text or city name."
-  },
-  {
     dimension: "street-signature",
     instruction:
       "pick ONE small street-level detail that tourists notice and photograph in this city, Show only this object, with no surrounding buildings or crowd."
@@ -112,7 +107,7 @@ export const generateCitySticker = async (city: string, attemptIndex: number = 0
     // We ask for a SOLID BLACK background so we can computationally remove it later.
     // We ask for a THICK WHITE BORDER to create the die-cut physical object look.
     const prompt = `
-      Design a funny, stereotypical souvenir sticker for: ${city}.
+      Design a funny souvenir sticker for: ${city}.
       
       SUBJECT CONSTRAINT:
       The sticker MUST represent: ${aspect.instruction}.
@@ -120,11 +115,10 @@ export const generateCitySticker = async (city: string, attemptIndex: number = 0
       
       CRITICAL RULES:
       - Choose THE most stereotypical, immediately recognizable example from ${city} for this aspect.
-      - Do NOT be generic. "Tokyo ramen" is generic. "Ichiran ramen booth with the bamboo curtain" is specific.
-      - SINGLE ITEM, don't make it too crowded
+      - Avoid generic ideas; pick something specific that locals and tourists would both recognize.
+      - EXACTLY ONE clear main subject (one character OR one object).
       
-      HUMOR & STYLE:
-      - Humor comes from exaggeration, contrast, or small relatable tourist problems.
+      STYLE:
       - ${randomStyle}
       
       DIE-CUT LAYOUT (CRITICAL):

@@ -2,6 +2,7 @@ import React, { useState, useRef } from 'react';
 import { generateCitySticker } from './services/geminiService';
 import { Printer } from './components/Printer';
 import { PlacedSticker, DragItem } from './types';
+import JSZip from 'jszip';
 
 // Helper to normalize mouse and touch coordinates
 const getClientCoords = (e: React.MouseEvent | React.TouchEvent | MouseEvent | TouchEvent) => {
@@ -20,6 +21,7 @@ export default function App() {
   const [city, setCity] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isZipping, setIsZipping] = useState(false);
   
   // Generation Logic State
   // We track how many times we've printed for the current input to cycle through categories
@@ -66,7 +68,7 @@ export default function App() {
       setGenerationCount(0);
   };
 
-  // Download Handler
+  // Download Handler (Single)
   const downloadSticker = (url: string, cityName: string) => {
       const link = document.createElement('a');
       link.href = url;
@@ -76,6 +78,41 @@ export default function App() {
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
+  };
+
+  // Download Handler (ZIP)
+  const handleDownloadAll = async () => {
+      if (placedStickers.length === 0) return;
+      setIsZipping(true);
+      try {
+          const zip = new JSZip();
+          const folder = zip.folder("my-stickers");
+
+          if (!folder) return;
+
+          placedStickers.forEach((sticker, index) => {
+              // sticker.url is "data:image/png;base64,..."
+              // We need to strip the prefix to get the raw base64 string
+              const base64Data = sticker.url.split(',')[1];
+              const safeCity = sticker.city.replace(/[^a-z0-9]/gi, '-').toLowerCase();
+              const fileName = `sticker-${safeCity}-${index + 1}.png`;
+              
+              folder.file(fileName, base64Data, { base64: true });
+          });
+
+          const content = await zip.generateAsync({ type: "blob" });
+          const link = document.createElement('a');
+          link.href = URL.createObjectURL(content);
+          link.download = `sticker-collection-${Date.now()}.zip`;
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+      } catch (e) {
+          console.error("Failed to zip stickers", e);
+          setError("Could not zip files.");
+      } finally {
+          setIsZipping(false);
+      }
   };
 
   // Delete Handler
@@ -291,6 +328,32 @@ export default function App() {
       <div className="absolute bottom-4 left-4 text-xs text-slate-400 font-mono pointer-events-none opacity-60">
         POWERED BY GEMINI • DRAG TO ARRANGE • HOVER TO DOWNLOAD
       </div>
+
+      {/* Download All Button */}
+      {placedStickers.length > 0 && (
+          <button 
+              onClick={handleDownloadAll}
+              disabled={isZipping}
+              className="absolute bottom-4 right-4 bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-2 px-4 rounded-full shadow-xl hover:shadow-2xl hover:-translate-y-1 active:scale-95 transition-all flex items-center gap-2 z-50 disabled:bg-slate-400"
+          >
+              {isZipping ? (
+                  <>
+                    <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    ZIPPING...
+                  </>
+              ) : (
+                  <>
+                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M12 9v6m0 0 3-3m-3 3-3-3" />
+                      </svg>
+                      DOWNLOAD ALL ({placedStickers.length})
+                  </>
+              )}
+          </button>
+      )}
 
     </div>
   );
